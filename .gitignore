@@ -1,0 +1,36 @@
+# ---------- Java / Maven (backend) ----------
+backend/target/
+*.class
+*.jar
+*.war
+
+# ---------- Spring Boot ----------
+*.log
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-secrets.properties
+
+# ---------- Node / React (frontend) ----------
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+
+# ---------- IDE ----------
+.idea/
+*.iml
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+
+# ---------- Env / secrets ----------
+.env
+.env.local
+*.pem
+*.key
