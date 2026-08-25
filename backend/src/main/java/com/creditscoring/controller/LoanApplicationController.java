@@ -2,6 +2,7 @@ package com.creditscoring.controller;
 
 import com.creditscoring.dto.loan.LoanApplicationRequest;
 import com.creditscoring.dto.loan.LoanApplicationResponse;
+import com.creditscoring.dto.scoring.ScoringResultResponse;
 import com.creditscoring.security.UserPrincipal;
 import com.creditscoring.service.LoanApplicationService;
 import jakarta.validation.Valid;
@@ -20,7 +21,7 @@ public class LoanApplicationController {
 
     private final LoanApplicationService loanApplicationService;
 
-    // Само APPLICANT може да подава заявки
+    // Only an APPLICANT can submit a new application
     @PostMapping
     @PreAuthorize("hasRole('APPLICANT')")
     public ResponseEntity<LoanApplicationResponse> submit(
@@ -31,7 +32,7 @@ public class LoanApplicationController {
         return ResponseEntity.ok(response);
     }
 
-    // Кандидатът вижда само собствените си заявки
+    // Applicants can only see their own applications
     @GetMapping("/my")
     @PreAuthorize("hasRole('APPLICANT')")
     public ResponseEntity<List<LoanApplicationResponse>> getMyApplications(
@@ -39,4 +40,19 @@ public class LoanApplicationController {
     ) {
         return ResponseEntity.ok(loanApplicationService.getMyApplications(principal.getId()));
     }
+
+    // Both roles allowed here - ownership check happens inside the service:
+    // an APPLICANT may only view the score for their own application.
+    @GetMapping("/{id}/score")
+    @PreAuthorize("hasAnyRole('APPLICANT', 'ANALYST', 'ADMIN')")
+    public ResponseEntity<ScoringResultResponse> getScore(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        ScoringResultResponse response = loanApplicationService.getScoringResult(
+                id, principal.getId(), principal.getUser().getRole()
+        );
+        return ResponseEntity.ok(response);
+    }
 }
+
