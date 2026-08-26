@@ -2,6 +2,7 @@ package com.creditscoring.controller;
 
 import com.creditscoring.dto.loan.LoanApplicationRequest;
 import com.creditscoring.dto.loan.LoanApplicationResponse;
+import com.creditscoring.dto.loan.LoanDecisionRequest;
 import com.creditscoring.dto.scoring.ScoringResultResponse;
 import com.creditscoring.security.UserPrincipal;
 import com.creditscoring.service.LoanApplicationService;
@@ -21,7 +22,7 @@ public class LoanApplicationController {
 
     private final LoanApplicationService loanApplicationService;
 
-    // Only an APPLICANT can submit a new application
+    // Only APPLICANT may submit a new application
     @PostMapping
     @PreAuthorize("hasRole('APPLICANT')")
     public ResponseEntity<LoanApplicationResponse> submit(
@@ -32,7 +33,7 @@ public class LoanApplicationController {
         return ResponseEntity.ok(response);
     }
 
-    // Applicants can only see their own applications
+    // Applicant sees only their own applications
     @GetMapping("/my")
     @PreAuthorize("hasRole('APPLICANT')")
     public ResponseEntity<List<LoanApplicationResponse>> getMyApplications(
@@ -41,8 +42,40 @@ public class LoanApplicationController {
         return ResponseEntity.ok(loanApplicationService.getMyApplications(principal.getId()));
     }
 
-    // Both roles allowed here - ownership check happens inside the service:
-    // an APPLICANT may only view the score for their own application.
+    // Analyst/admin queue - every application in the system
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ANALYST', 'ADMIN')")
+    public ResponseEntity<List<LoanApplicationResponse>> getAllApplications() {
+        return ResponseEntity.ok(loanApplicationService.getAllApplications());
+    }
+
+    // Single application detail - applicant may only view their own,
+    // analyst/admin may view any (ownership check happens in the service)
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('APPLICANT', 'ANALYST', 'ADMIN')")
+    public ResponseEntity<LoanApplicationResponse> getById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        LoanApplicationResponse response = loanApplicationService.getById(
+                id, principal.getId(), principal.getUser().getRole()
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    // Analyst decision - approve / reject / counter-offer, always justified
+    @PatchMapping("/{id}/decision")
+    @PreAuthorize("hasRole('ANALYST')")
+    public ResponseEntity<LoanApplicationResponse> decide(
+            @PathVariable Long id,
+            @Valid @RequestBody LoanDecisionRequest request,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        LoanApplicationResponse response = loanApplicationService.decide(id, request, principal.getUser());
+        return ResponseEntity.ok(response);
+    }
+
+    // Explainability breakdown for a single application's score
     @GetMapping("/{id}/score")
     @PreAuthorize("hasAnyRole('APPLICANT', 'ANALYST', 'ADMIN')")
     public ResponseEntity<ScoringResultResponse> getScore(
@@ -55,4 +88,3 @@ public class LoanApplicationController {
         return ResponseEntity.ok(response);
     }
 }
-

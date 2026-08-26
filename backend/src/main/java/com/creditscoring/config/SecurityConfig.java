@@ -16,10 +16,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity // enables @PreAuthorize("hasRole('...')") on controller methods
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -44,15 +49,35 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+    // Allows the Vite dev server (localhost:5173) to call this API
+    // (localhost:8080) from the browser. Without this, every request from
+    // the React app would be blocked by the browser's CORS policy before
+    // Spring Security even sees it.
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // регистрация и login - отворени за всички
+                        // registration and login - open to everyone
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        // всичко останало изисква валиден токен
+                        // /error - so the real error isn't masked behind a 403
+                        .requestMatchers("/error").permitAll()
+                        // everything else requires a valid token
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
