@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import api from '../api/client'
 import StatusPill from '../components/StatusPill'
 import ScoreReadout from '../components/ScoreReadout'
+import { formatDate } from '../utils/formatDate'
 
 export default function AnalystDashboard() {
   const [applications, setApplications] = useState([])
@@ -96,7 +97,7 @@ export default function AnalystDashboard() {
             >
               <div className="row-main">
                 <div className="row-title">{app.applicantFullName}</div>
-                <div className="row-sub">#{app.id} · {app.requestedAmount} EUR</div>
+                <div className="row-sub">#{app.id} · {formatDate(app.createdAt)} · {app.requestedAmount} EUR</div>
               </div>
               <ScoreReadout score={app.totalScore} decision={app.decision} />
               <StatusPill status={app.status} />
@@ -115,13 +116,17 @@ export default function AnalystDashboard() {
             <div>
               <p style={{ fontSize: 13 }}>
                 <strong>{selected.applicantFullName}</strong> ({selected.applicantEmail})<br />
-                Income: {selected.monthlyIncome} EUR · Debt: {selected.monthlyDebt} EUR<br />
-                Requesting: {selected.requestedAmount} EUR over {selected.termMonths} months
+                Income: {selected.monthlyIncome} EUR · Current monthly debt: {selected.monthlyDebt} EUR<br />
+                Requesting: {selected.requestedAmount} EUR over {selected.termMonths} months<br />
+                Submitted: {formatDate(selected.createdAt)}
               </p>
 
               {scoreDetail && !scoreDetail.error && (
                 <div style={{ marginBottom: 20 }}>
                   <h3>Score breakdown</h3>
+                  <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: -4 }}>
+                    Automatically calculated - use it as guidance, not as the final word.
+                  </p>
                   {scoreDetail.details.map((d, idx) => (
                     <div key={idx} className={`rule-row ${d.triggered ? 'triggered' : ''}`}>
                       <div>

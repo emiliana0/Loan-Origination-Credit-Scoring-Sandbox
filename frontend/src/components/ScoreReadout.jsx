@@ -11,9 +11,7 @@ export default function ScoreReadout({ score, decision }) {
   return (
     <span className={`score-readout ${decisionClass}`}>
       <span className="score-number">{score}</span>
-      <span className="score-bar">
-        <span className="score-bar-fill" style={{ width: `${score}%` }} />
-      </span>
+      <span className="score-unit">%</span>
     </span>
   )
 }

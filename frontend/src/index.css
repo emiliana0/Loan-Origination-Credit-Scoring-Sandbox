@@ -16,6 +16,8 @@
   --warning-soft: #f6efdf;
   --success: #2f6f5e;
   --success-soft: #e4efec;
+  --info: #2d5f8a;
+  --info-soft: #e3ecf4;
 
   /* --- type --- */
   --font-display: 'Fraunces', Georgia, serif;
@@ -226,6 +228,12 @@ button, input, select, textarea {
   margin-top: 4px;
 }
 
+.field .field-hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -334,7 +342,7 @@ button, input, select, textarea {
 .status-pill.in_review { background: var(--warning-soft); color: var(--warning); }
 .status-pill.approved { background: var(--success-soft); color: var(--success); }
 .status-pill.rejected { background: var(--danger-soft); color: var(--danger); }
-.status-pill.counter_offer { background: var(--accent-soft); color: var(--accent-ink); }
+.status-pill.counter_offer { background: var(--info-soft); color: var(--info); }
 
 /* --- score readout (signature element) --- */
 .score-readout {
@@ -347,29 +355,21 @@ button, input, select, textarea {
 .score-readout .score-number {
   font-size: 20px;
   font-weight: 600;
-  min-width: 34px;
+  min-width: 30px;
   text-align: right;
 }
 
-.score-readout .score-bar {
-  width: 90px;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--surface-sunken);
-  overflow: hidden;
-}
-
-.score-readout .score-bar-fill {
-  height: 100%;
-  border-radius: 3px;
+.score-readout .score-unit {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
 }
 
 .score-readout.approve .score-number { color: var(--success); }
-.score-readout.approve .score-bar-fill { background: var(--success); }
 .score-readout.manual_review .score-number { color: var(--warning); }
-.score-readout.manual_review .score-bar-fill { background: var(--warning); }
 .score-readout.reject .score-number { color: var(--danger); }
-.score-readout.reject .score-bar-fill { background: var(--danger); }
 
 /* --- explainability breakdown --- */
 .rule-row {
@@ -412,6 +412,11 @@ button, input, select, textarea {
 .alert-success {
   background: var(--success-soft);
   color: var(--accent-ink);
+}
+
+.alert-info {
+  background: var(--info-soft);
+  color: var(--info);
 }
 
 /* --- two-column detail layout --- */

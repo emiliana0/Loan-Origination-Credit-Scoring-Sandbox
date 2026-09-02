@@ -8,6 +8,13 @@ const ROLE_HOME = {
   ADMIN: '/admin'
 }
 
+// Same intent as the backend's validation: a plausible email shape, and a
+// name made up of letters (any language) and spaces only - no digits or
+// symbols. Client-side checks give instant feedback; the backend still
+// re-validates everything, so this is a UX nicety, not the source of truth.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const NAME_PATTERN = /^[\p{L} ]+$/u
+
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
@@ -16,11 +23,30 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [role, setRole] = useState('APPLICANT')
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
   const [loading, setLoading] = useState(false)
+
+  function validate() {
+    const errors = {}
+    if (!NAME_PATTERN.test(fullName.trim())) {
+      errors.fullName = 'Full name may only contain letters and spaces'
+    }
+    if (!EMAIL_PATTERN.test(email.trim())) {
+      errors.email = 'Enter a valid email address'
+    }
+    return errors
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+
+    const errors = validate()
+    setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) {
+      return
+    }
+
     setLoading(true)
     try {
       const data = await register(email, password, fullName, role)
@@ -41,7 +67,7 @@ export default function RegisterPage() {
 
         {error && <div className="alert alert-error">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="field">
             <label htmlFor="fullName">Full name</label>
             <input
@@ -51,6 +77,7 @@ export default function RegisterPage() {
               onChange={(e) => setFullName(e.target.value)}
               required
             />
+            {fieldErrors.fullName && <div className="error-text">{fieldErrors.fullName}</div>}
           </div>
           <div className="field">
             <label htmlFor="email">Email</label>
@@ -61,6 +88,7 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+            {fieldErrors.email && <div className="error-text">{fieldErrors.email}</div>}
           </div>
           <div className="field">
             <label htmlFor="password">Password</label>

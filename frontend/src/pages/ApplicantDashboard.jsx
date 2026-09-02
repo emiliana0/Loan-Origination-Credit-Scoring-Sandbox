@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import api from '../api/client'
 import StatusPill from '../components/StatusPill'
 import ScoreReadout from '../components/ScoreReadout'
+import { formatDate } from '../utils/formatDate'
 
 export default function ApplicantDashboard() {
   const [applications, setApplications] = useState([])
@@ -104,7 +105,7 @@ export default function ApplicantDashboard() {
             </div>
 
             <div className="field">
-              <label htmlFor="monthlyDebt">Monthly debt payments (EUR)</label>
+              <label htmlFor="monthlyDebt">Current monthly debt payments (EUR)</label>
               <input
                 id="monthlyDebt"
                 type="number"
@@ -114,6 +115,10 @@ export default function ApplicantDashboard() {
                 onChange={(e) => updateField('monthlyDebt', e.target.value)}
                 required
               />
+              <div className="field-hint">
+                The total you currently pay each month across existing loans, credit cards, etc. —
+                not past or closed debts.
+              </div>
               {formErrors.monthlyDebt && <div className="error-text">{formErrors.monthlyDebt}</div>}
             </div>
 
@@ -156,6 +161,11 @@ export default function ApplicantDashboard() {
             <h2>History</h2>
           </div>
 
+          <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 16 }}>
+            The score shown next to each application is calculated automatically by the system
+            and is not a guarantee of the final decision — an analyst may review and change it.
+          </p>
+
           {loading && <div className="empty-state">Loading…</div>}
 
           {!loading && applications.length === 0 && (
@@ -167,7 +177,7 @@ export default function ApplicantDashboard() {
               <div className="list-row" style={{ cursor: 'pointer' }} onClick={() => viewDetail(app.id)}>
                 <div className="row-main">
                   <div className="row-title">{app.requestedAmount} EUR · {app.termMonths} mo.</div>
-                  <div className="row-sub">#{app.id}</div>
+                  <div className="row-sub">#{app.id} · {formatDate(app.createdAt)}</div>
                 </div>
                 <ScoreReadout score={app.totalScore} decision={app.decision} />
                 <StatusPill status={app.status} />
@@ -176,7 +186,7 @@ export default function ApplicantDashboard() {
               {selectedId === app.id && scoreDetail && !scoreDetail.error && (
                 <div style={{ padding: '8px 0 16px' }}>
                   {app.status === 'COUNTER_OFFER' && (
-                    <div className="alert alert-success">
+                    <div className="alert alert-info">
                       Counter-offer: {app.offeredAmount} EUR over {app.offeredTermMonths} months
                     </div>
                   )}
